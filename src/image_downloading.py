@@ -22,6 +22,46 @@ def project_with_scale(lat, lon, scale):
     y = scale * (0.5 - np.log((1 + siny) / (1 - siny)) / (4 * np.pi))
     return x, y
 
+def tile_to_quadkey(x: int, y: int, z: int) -> str:
+    """
+    Converts a Bing Maps tile's X, Y coordinates and Zoom level Z into its Quadkey.
+
+    The Quadkey is formed by interleaving the bits of the X and Y coordinates
+    from the most significant bit (MSB) to the least significant bit (LSB),
+    up to the specified Zoom Level Z.
+
+    Args:
+        x: The tile's X coordinate (column).
+        y: The tile's Y coordinate (row).
+        z: The tile's Zoom level (0 to 23).
+
+    Returns:
+        The Quadkey string.
+    """
+
+    quadkey = []
+
+    # We iterate from the MSB (bit position z-1) down to the LSB (bit position 0).
+    for i in range(z - 1, -1, -1):
+        # 1. Extract the bit at position 'i' for Y and X coordinates
+        # (coordinate >> i) shifts the bit we want to the 0 position.
+        # & 1 isolates that bit.
+        y_bit = (y >> i) & 1
+        x_bit = (x >> i) & 1
+
+        # 2. Combine the bits to form the quadkey digit (0, 1, 2, or 3)
+        # The formula is 2 * y_bit + x_bit:
+        # 00 (y=0, x=0) -> 0
+        # 01 (y=0, x=1) -> 1
+        # 10 (y=1, x=0) -> 2
+        # 11 (y=1, x=1) -> 3
+        quadkey_digit = (2 * y_bit) + x_bit
+
+        # 3. Append the digit (since we are iterating from MSB to LSB)
+        quadkey.append(str(quadkey_digit))
+
+    return "".join(quadkey)
+
 
 def download_image(lat1: float, lon1: float, lat2: float, lon2: float,
     zoom: int, url: str, headers: dict, tile_size: int = 256, channels: int = 3) -> np.ndarray:
@@ -69,7 +109,7 @@ def download_image(lat1: float, lon1: float, lat2: float, lon2: float,
 
     def build_row(tile_y):
         for tile_x in range(tl_tile_x, br_tile_x + 1):
-            tile = download_tile(url.format(x=tile_x, y=tile_y, z=zoom), headers, channels)
+            tile = download_tile(url.format(x=tile_x, y=tile_y, z=zoom, q=tile_to_quadkey(tile_x, tile_y, zoom)), headers, channels)
 
             if tile is not None:
                 # Find the pixel coordinates of the new tile relative to the image
