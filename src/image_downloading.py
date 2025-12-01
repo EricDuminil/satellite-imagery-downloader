@@ -117,10 +117,10 @@ def download_image(lat1: float, lon1: float, lat2: float, lon2: float,
         thread = threading.Thread(target=build_row, args=[tile_y])
         thread.start()
         threads.append(thread)
-    
+ 
     for thread in threads:
         thread.join()
-    
+
     return img
 
 
