@@ -3,7 +3,7 @@ import requests
 import numpy as np
 import threading
 
-# TODO: Add cache?
+# TODO: Add cache? Some tiles appear to be black, and should be redownloaded
 # TODO: Check how many threads are started. Don't DDOS the server!
 
 
