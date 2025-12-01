@@ -11,7 +11,7 @@ MAPS = {
     "Houat": [47.413654718057984, -3.0214163590517242, 47.36368529994759, -2.9306483417315765, 18],
     "Belle-Ile": [47.407899134037365, -3.289912020518811, 47.26545760031402, -3.0448569371450986, 16],
     "Hoedic": [47.35996326489376, -2.910067939653619, 47.31106708683253, -2.8246144865125857, 18],
-    "Les Glénans": [47.746850565803975, -4.063520659844032, 47.683716225683675, -3.9352222847223755, 18],
+    "Les Glénans": [47.746850565803975, -4.063520659844032, 47.683716225683675, -3.9352222847223755, 17],
 }
 
 HEADERS = {
@@ -35,9 +35,9 @@ OUTPUT_FOLDER = SCRIPT_DIR / "images"
 OUTPUT_FOLDER.mkdir(exist_ok=True)
 
 for name, (lat1, lon1, lat2, lon2, zoom) in MAPS.items():
-    output_map = OUTPUT_FOLDER / f"{name}_{zoom}_google.png"
+    output_map = OUTPUT_FOLDER / f"{name}_{zoom}.png"
     if output_map.exists() > 0:
         continue
     print(f"Downloading {output_map}")
-    img = download_image(lat1, lon1, lat2, lon2, zoom, GOOGLE_URL, HEADERS)
+    img = download_image(lat1, lon1, lat2, lon2, zoom, BING_URL, HEADERS)
     cv2.imwrite(output_map.as_posix(), img)
