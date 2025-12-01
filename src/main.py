@@ -6,6 +6,8 @@ from datetime import datetime
 
 from image_downloading import download_image
 
+# TODO: Replace with argparse?
+
 file_dir = os.path.dirname(__file__)
 prefs_path = os.path.join(file_dir, 'preferences.json')
 default_prefs = {
