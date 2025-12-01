@@ -7,7 +7,7 @@ import threading
 def download_tile(url, headers, channels):
     response = requests.get(url, headers=headers)
     arr =  np.asarray(bytearray(response.content), dtype=np.uint8)
-    
+
     if channels == 3:
         return cv2.imdecode(arr, 1)
     return cv2.imdecode(arr, -1)
@@ -24,43 +24,22 @@ def project_with_scale(lat, lon, scale):
 
 def tile_to_quadkey(x: int, y: int, z: int) -> str:
     """
-    Converts a Bing Maps tile's X, Y coordinates and Zoom level Z into its Quadkey.
+    Converts a Bing Maps tile's X, Y coordinates and Zoom level Z into its Quadkey. {q} can then be used in url format.
 
-    The Quadkey is formed by interleaving the bits of the X and Y coordinates
-    from the most significant bit (MSB) to the least significant bit (LSB),
-    up to the specified Zoom Level Z.
-
-    Args:
-        x: The tile's X coordinate (column).
-        y: The tile's Y coordinate (row).
-        z: The tile's Zoom level (0 to 23).
-
-    Returns:
-        The Quadkey string.
+    see https://learn.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system
     """
 
-    quadkey = []
+    quadkey = ""
 
-    # We iterate from the MSB (bit position z-1) down to the LSB (bit position 0).
     for i in range(z - 1, -1, -1):
-        # 1. Extract the bit at position 'i' for Y and X coordinates
-        # (coordinate >> i) shifts the bit we want to the 0 position.
-        # & 1 isolates that bit.
         y_bit = (y >> i) & 1
         x_bit = (x >> i) & 1
 
-        # 2. Combine the bits to form the quadkey digit (0, 1, 2, or 3)
-        # The formula is 2 * y_bit + x_bit:
-        # 00 (y=0, x=0) -> 0
-        # 01 (y=0, x=1) -> 1
-        # 10 (y=1, x=0) -> 2
-        # 11 (y=1, x=1) -> 3
         quadkey_digit = (2 * y_bit) + x_bit
 
-        # 3. Append the digit (since we are iterating from MSB to LSB)
-        quadkey.append(str(quadkey_digit))
+        quadkey += str(quadkey_digit)
 
-    return "".join(quadkey)
+    return quadkey
 
 
 def download_image(lat1: float, lon1: float, lat2: float, lon2: float,
