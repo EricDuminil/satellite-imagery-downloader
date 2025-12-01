@@ -3,6 +3,9 @@ import requests
 import numpy as np
 import threading
 
+# TODO: Add cache?
+# TODO: Check how many threads are started. Don't DDOS the server!
+
 
 def download_tile(url, headers, channels):
     response = requests.get(url, headers=headers)
