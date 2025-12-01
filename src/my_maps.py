@@ -28,15 +28,16 @@ HEADERS = {
 }
 
 BING_URL = "http://ecn.t3.tiles.virtualearth.net/tiles/a{q}.jpeg?g=1"
+GOOGLE_URL = "https://mt.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
 
 OUTPUT_FOLDER = SCRIPT_DIR / "images"
 
 OUTPUT_FOLDER.mkdir(exist_ok=True)
 
 for name, (lat1, lon1, lat2, lon2, zoom) in MAPS.items():
-    output_map = OUTPUT_FOLDER / f"{name}_{zoom}.png"
+    output_map = OUTPUT_FOLDER / f"{name}_{zoom}_google.png"
     if output_map.exists() > 0:
         continue
     print(f"Downloading {output_map}")
-    img = download_image(lat1, lon1, lat2, lon2, zoom, BING_URL, HEADERS)
+    img = download_image(lat1, lon1, lat2, lon2, zoom, GOOGLE_URL, HEADERS)
     cv2.imwrite(output_map.as_posix(), img)
