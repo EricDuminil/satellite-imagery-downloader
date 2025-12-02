@@ -4,7 +4,6 @@ import numpy as np
 import threading
 
 # TODO: Add cache? Some tiles appear to be black, and should be redownloaded
-# TODO: Check how many threads are started. Don't DDOS the server!
 
 
 def download_tile(url, headers, channels):
@@ -117,6 +116,7 @@ def download_image(lat1: float, lon1: float, lat2: float, lon2: float,
 
     threads = []
     for tile_y in range(tl_tile_y, br_tile_y + 1):
+        # FIXME: Too many parallel jobs!!! Don't DDOS the server
         thread = threading.Thread(target=build_row, args=[tile_y])
         thread.start()
         threads.append(thread)
