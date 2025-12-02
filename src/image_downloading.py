@@ -1,13 +1,24 @@
-import cv2
-import requests
-import numpy as np
+import random
 import threading
+import time
+
+import cv2
+import numpy as np
+import requests
 
 # TODO: Add cache? Some tiles appear to be black, and should be redownloaded
 # TODO: Add warning / errors if too many tiles?
 
+MAX_THREADS = 4
+WAIT_BETWEEN_DOWNLOADS = 5
+
+def random_wait(mean_time:int = WAIT_BETWEEN_DOWNLOADS, variation:int=2) -> None:
+    random_time = max([1, mean_time + random.randint(-variation, variation)])
+    time.sleep(random_time)
+
 
 def download_tile(url, headers, channels):
+    random_wait()
     response = requests.get(url, headers=headers)
     arr =  np.asarray(bytearray(response.content), dtype=np.uint8)
 
