@@ -4,6 +4,7 @@ import numpy as np
 import threading
 
 # TODO: Add cache? Some tiles appear to be black, and should be redownloaded
+# TODO: Add warning / errors if too many tiles?
 
 
 def download_tile(url, headers, channels):
