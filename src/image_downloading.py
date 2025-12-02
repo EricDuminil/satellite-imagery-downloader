@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 import cv2
 import numpy as np
 import requests
+from rich.progress import Progress
 
 # TODO: Add cache? Some tiles appear to be black, and should be redownloaded
 # TODO: Add warning / errors if too many tiles?
@@ -21,7 +22,7 @@ def random_wait(mean_time: int = WAIT_BETWEEN_DOWNLOADS, variation: int = 2) -> 
 
 def download_tile(url, headers, channels):
     random_wait()
-    print(f"Download {url}...")
+    # print(f"Download {url}...")
     response = requests.get(url, headers=headers)
     arr = np.asarray(bytearray(response.content), dtype=np.uint8)
 
@@ -112,6 +113,10 @@ def download_image(
     img_h = br_pixel_y - tl_pixel_y
     img = np.zeros((img_h, img_w, channels), np.uint8)
 
+    progress = Progress()
+    task1 = progress.add_task("[green]Downloading....", total=(br_tile_x + 1 - tl_tile_x) * (br_tile_y + 1 -tl_tile_y))
+    progress.start()
+
     def build_row(tile_y):
         for tile_x in range(tl_tile_x, br_tile_x + 1):
             tile = download_tile(
@@ -138,12 +143,14 @@ def download_image(
                 cr_y_r = tile_size + min(0, img_h - br_rel_y)
 
                 img[img_y_l:img_y_r, img_x_l:img_x_r] = tile[cr_y_l:cr_y_r, cr_x_l:cr_x_r]
+                progress.update(task1, advance=1)
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for tile_y in range(tl_tile_y, br_tile_y + 1):
             executor.submit(build_row, tile_y)
 
         executor.shutdown(wait=True)
+    progress.stop()
 
     return img
 
