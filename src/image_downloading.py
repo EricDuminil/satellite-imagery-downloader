@@ -1,6 +1,6 @@
 import random
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 
 import cv2
 import numpy as np
