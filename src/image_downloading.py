@@ -113,44 +113,47 @@ def download_image(
     img_h = br_pixel_y - tl_pixel_y
     img = np.zeros((img_h, img_w, channels), np.uint8)
 
-    progress = Progress()
-    task1 = progress.add_task("[green]Downloading....", total=(br_tile_x + 1 - tl_tile_x) * (br_tile_y + 1 -tl_tile_y))
-    progress.start()
+    columns_count = br_tile_x + 1 - tl_tile_x
+    rows_count = br_tile_y + 1 - tl_tile_y
 
-    def build_row(tile_y):
-        for tile_x in range(tl_tile_x, br_tile_x + 1):
-            tile = download_tile(
-                url.format(x=tile_x, y=tile_y, z=zoom, q=tile_to_quadkey(tile_x, tile_y, zoom)), headers, channels
-            )
+    with Progress() as progress:
+        total_task = progress.add_task("[green]Downloading....", total=columns_count * rows_count)
+        def build_row(tile_y):
+            current_task = progress.add_task(f"[blue]Row {tile_y}....", total=columns_count)
+            for tile_x in range(tl_tile_x, br_tile_x + 1):
+                tile = download_tile(
+                    url.format(x=tile_x, y=tile_y, z=zoom, q=tile_to_quadkey(tile_x, tile_y, zoom)), headers, channels
+                )
 
-            if tile is not None:
-                # Find the pixel coordinates of the new tile relative to the image
-                tl_rel_x = tile_x * tile_size - tl_pixel_x
-                tl_rel_y = tile_y * tile_size - tl_pixel_y
-                br_rel_x = tl_rel_x + tile_size
-                br_rel_y = tl_rel_y + tile_size
+                if tile is not None:
+                    # Find the pixel coordinates of the new tile relative to the image
+                    tl_rel_x = tile_x * tile_size - tl_pixel_x
+                    tl_rel_y = tile_y * tile_size - tl_pixel_y
+                    br_rel_x = tl_rel_x + tile_size
+                    br_rel_y = tl_rel_y + tile_size
 
-                # Define where the tile will be placed on the image
-                img_x_l = max(0, tl_rel_x)
-                img_x_r = min(img_w + 1, br_rel_x)
-                img_y_l = max(0, tl_rel_y)
-                img_y_r = min(img_h + 1, br_rel_y)
+                    # Define where the tile will be placed on the image
+                    img_x_l = max(0, tl_rel_x)
+                    img_x_r = min(img_w + 1, br_rel_x)
+                    img_y_l = max(0, tl_rel_y)
+                    img_y_r = min(img_h + 1, br_rel_y)
 
-                # Define how border tiles will be cropped
-                cr_x_l = max(0, -tl_rel_x)
-                cr_x_r = tile_size + min(0, img_w - br_rel_x)
-                cr_y_l = max(0, -tl_rel_y)
-                cr_y_r = tile_size + min(0, img_h - br_rel_y)
+                    # Define how border tiles will be cropped
+                    cr_x_l = max(0, -tl_rel_x)
+                    cr_x_r = tile_size + min(0, img_w - br_rel_x)
+                    cr_y_l = max(0, -tl_rel_y)
+                    cr_y_r = tile_size + min(0, img_h - br_rel_y)
 
-                img[img_y_l:img_y_r, img_x_l:img_x_r] = tile[cr_y_l:cr_y_r, cr_x_l:cr_x_r]
-                progress.update(task1, advance=1)
+                    img[img_y_l:img_y_r, img_x_l:img_x_r] = tile[cr_y_l:cr_y_r, cr_x_l:cr_x_r]
+                    progress.update(total_task, advance=1)
+                    progress.update(current_task, advance=1)
+            progress.remove_task(current_task)
 
-    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
-        for tile_y in range(tl_tile_y, br_tile_y + 1):
-            executor.submit(build_row, tile_y)
+        with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+            for tile_y in range(tl_tile_y, br_tile_y + 1):
+                executor.submit(build_row, tile_y)
 
-        executor.shutdown(wait=True)
-    progress.stop()
+            executor.shutdown(wait=True)
 
     return img
 
