@@ -42,4 +42,4 @@ for name, (lat1, lon1, lat2, lon2, zoom) in MAPS.items():
         continue
     print(f"Downloading {output_map}")
     img = download_image(lat1, lon1, lat2, lon2, zoom, BING_URL, HEADERS)
-    cv2.imwrite(output_map.as_posix(), img)
+    cv2.imwrite(str(output_map.resolve()), img)
